@@ -13,7 +13,6 @@ public class CloudVideoPlayer : MonoBehaviour {
     private Dictionary<string, PointCloudDepth> _clouds;
 
     public string configFile;
-
     private string _videosDir;
     private string _colorStreamName;
     private string _depthStreamName;
@@ -22,11 +21,19 @@ public class CloudVideoPlayer : MonoBehaviour {
     private int _vidHeight;
     private int _layerNum;
     private bool _playing;
-
+    public GameObject _rightHand;
+    public GameObject _leftHand;
+    private SteamVR_TrackedObject _rightObj = null;
+    private SteamVR_TrackedObject _leftObj= null;
+    private SteamVR_Controller.Device _rightController;
+    private SteamVR_Controller.Device _leftController;
     void Awake()
     {
         Debug.Log("Hello Tracker");
         _clouds = new Dictionary<string, PointCloudDepth>();
+        _rightObj = _rightHand.GetComponent<SteamVR_TrackedObject>();
+        _leftObj = _leftHand.GetComponent<SteamVR_TrackedObject>();
+
         loadConfig();
     }
 
@@ -88,9 +95,13 @@ public class CloudVideoPlayer : MonoBehaviour {
 
     }
 
+   
     private void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (_rightObj.index == SteamVR_TrackedObject.EIndex.None || _leftObj.index == SteamVR_TrackedObject.EIndex.None) return;
+        _rightController = SteamVR_Controller.Input((int)_rightObj.index);
+        _leftController = SteamVR_Controller.Input((int)_leftObj.index);
+        if (_rightController.GetPressUp(SteamVR_Controller.ButtonMask.Trigger))
         {
             _playing = !_playing;
             foreach(KeyValuePair<string,PointCloudDepth> d in _clouds)

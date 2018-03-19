@@ -1,0 +1,2 @@
+ .\ffmpeg.exe -i "C:\Users\rafae\Desktop\Data TEST\5layerColor.h264" -vcodec copy "C
+:\Users\rafae\Desktop\Data TEST\5layerColor.avi"
