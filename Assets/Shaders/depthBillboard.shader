@@ -10,7 +10,6 @@ Shader "Custom/Depth Billboard"
 		_Size ("Size", Range(0, 3)) = 0.03 //patch size
 		_ColorTex ("Texture", 2D) = "white" {}
 		_DepthTex ("TextureD", 2D) = "white" {}
-
 		_Dev ("Dev", Range(-5, 5)) = 0
 		_Gamma ("Gamma", Range(0, 6)) =3.41
 		_SigmaX ("SigmaX", Range(-3, 3)) = 0.10
@@ -54,7 +53,7 @@ Shader "Custom/Depth Billboard"
 				// **************************************************************
 				// Vars															*
 				// **************************************************************
-
+				float _Brightness;
 				float _Size;
 				sampler2D _ColorTex;				
 				sampler2D _DepthTex; 
@@ -121,7 +120,7 @@ Shader "Custom/Depth Billboard"
 					
 					float size = (p[0].pos.z*_Size)/351.00146192;
 					//float size = 0.014;
-					float halfS = 0.5f * size;
+					float halfS = 0.47f * size;
 
 					if(p[0].color.a != 0){
 							
@@ -212,15 +211,15 @@ Shader "Custom/Depth Billboard"
 				//		t.a *= _Alpha;
 				//	else
 						t.a = _Alpha;
-					float  P=sqrt(t.r*t.r*0.299+t.g*t.g*0.587+t.b*t.b*0.114 ) ;
+				//	float  P=sqrt(t.r*t.r*0.299+t.g*t.g*0.587+t.b*t.b*0.114 ) ;
 
 					//float  P=sqrt(t.r) ;
 
-					t.r=P+((t.r)-P)*(saturation+0.3);
-					t.g=P+((t.g)-P)*(saturation+0.3);
-					t.b=P+((t.b)-P)*(saturation+0.3); 
+					//t.r=P+((t.r)-P)*(saturation+0.3);
+					//t.g=P+((t.g)-P)*(saturation+0.3);
+					//t.b=P+((t.b)-P)*(saturation+0.3); 
 
-					return  t;
+					return  t*_Brightness;
 
 				}
 

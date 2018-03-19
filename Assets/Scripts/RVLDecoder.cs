@@ -25,13 +25,11 @@ public class RVLDecoder
         }
     }
 
-    void ResetDecoder()
+    public void ResetDecoder()
     {
         _inFile.Position = 0;
         buffer = pBuffer = nibblesWritten = 0;
         word = 0;
-
-     
 
 
     }
@@ -68,8 +66,7 @@ public class RVLDecoder
        int bytesRead = _inFile.Read(_sizeBuffer, 0, 4);
         if (bytesRead == 0)
         {
-            ResetDecoder();
-            bytesRead = _inFile.Read(_sizeBuffer, 0, 4);
+            return false;
         }
         int size = (_sizeBuffer[0] << 24) | (_sizeBuffer[1] << 16) | (_sizeBuffer[2] << 8) | (_sizeBuffer[3]);
 
