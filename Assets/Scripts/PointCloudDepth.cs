@@ -1,10 +1,10 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Video;
 using System.Collections.Generic;
 
 public class PointCloudDepth : MonoBehaviour
 {
+    public float brightness;
     uint _id;
     Texture2D _colorTex;
     Texture2D _depthTex;
@@ -23,6 +23,7 @@ public class PointCloudDepth : MonoBehaviour
     int _texScale;
     int _width;
     int _height;
+    bool _depthStreamDone = false;
     void Awake()
     {
         _width = 512;
@@ -30,7 +31,7 @@ public class PointCloudDepth : MonoBehaviour
         _texScale = 1;
         _objs = null;
         _mat = Resources.Load("Materials/cloudmatDepth") as Material;
-
+        brightness = 1;
     }
 
     public void PlayCloudVideo()
@@ -45,12 +46,17 @@ public class PointCloudDepth : MonoBehaviour
         _playing = false;
     }
 
+
+
     void OnNewFrame(VideoPlayer source, long frameIdx)
     {
         if (!_playing) return;
-        bool ok = _decoder.DecompressRVL(_depthBytes, _width * _height);
-        if (ok) _depthTex.LoadRawTextureData(_depthBytes);
+
+
+        _depthStreamDone = !_decoder.DecompressRVL(_depthBytes, _width * _height);
+        if (!_depthStreamDone) _depthTex.LoadRawTextureData(_depthBytes);
         else return;
+
 
         _depthTex.Apply();
         MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
@@ -58,11 +64,12 @@ public class PointCloudDepth : MonoBehaviour
         {
             MeshRenderer mr = renderers[i];
             mr.material.SetTexture("_DepthTex", _depthTex);
+            mr.material.SetFloat("_Brightness", brightness);
         }
         show();
     }
 
-    public void initStructs(uint id, string colorVideo, string depthVideo,GameObject cloudGameobj)
+    public void initStructs(uint id, string colorVideo, string depthVideo, GameObject cloudGameobj)
     {
         _id = id;
         _depthTex = new Texture2D(_width, _height, TextureFormat.BGRA32, false);
@@ -75,13 +82,12 @@ public class PointCloudDepth : MonoBehaviour
         play.playOnAwake = false;
         play.url = colorVideo;
         play.targetTexture = new RenderTexture(_width, _height, 24, RenderTextureFormat.BGRA32);
-        //Enable new frame Event
         play.sendFrameReadyEvents = true;
-        //Subscribe to the new frame Event
-        play.frameReady += OnNewFrame;
+        play.frameReady += this.OnNewFrame;
+        play.skipOnDrop = false;
         _player = play;
         //setup depth
-        _decoder = new RVLDecoder(depthVideo,_width,_height);
+        _decoder = new RVLDecoder(depthVideo, _width, _height);
 
         if (_objs != null)
         {
@@ -162,5 +168,14 @@ public class PointCloudDepth : MonoBehaviour
     }
 
 
-
+    void Update()
+    {
+        if (_depthStreamDone)
+        {
+            PauseCloudVideo();
+            _decoder.ResetDecoder();
+            _depthStreamDone = false;
+            return;
+        }
+    }
 }

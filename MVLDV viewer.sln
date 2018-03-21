@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVLDV viewer", "MVLDV viewer.csproj", "{61F35D7A-F91D-49EA-9BAA-99A1956F229E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVLDV viewer.Editor", "MVLDV viewer.Editor.csproj", "{2091B2E2-2612-06CF-2223-B528999F1FBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{61F35D7A-F91D-49EA-9BAA-99A1956F229E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61F35D7A-F91D-49EA-9BAA-99A1956F229E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61F35D7A-F91D-49EA-9BAA-99A1956F229E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2091B2E2-2612-06CF-2223-B528999F1FBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2091B2E2-2612-06CF-2223-B528999F1FBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2091B2E2-2612-06CF-2223-B528999F1FBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2091B2E2-2612-06CF-2223-B528999F1FBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

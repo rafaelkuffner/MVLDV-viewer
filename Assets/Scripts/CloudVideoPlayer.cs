@@ -22,10 +22,9 @@ public class CloudVideoPlayer : MonoBehaviour {
     private int _vidHeight;
     private int _layerNum;
     private bool _playing;
-
+    public Transform worldCenter;
     void Awake()
     {
-        Debug.Log("Hello Tracker");
         _clouds = new Dictionary<string, PointCloudDepth>();
         loadConfig();
     }
@@ -57,6 +56,7 @@ public class CloudVideoPlayer : MonoBehaviour {
                 new Vector4(float.Parse(chunks[3]), float.Parse(chunks[7]), float.Parse(chunks[11]), float.Parse(chunks[15])));
 
             GameObject cloudobj = new GameObject(s);
+            cloudobj.transform.parent = worldCenter;
             cloudobj.transform.localPosition = new Vector3(mat[0, 3], mat[1, 3],mat[2,3]);
             cloudobj.transform.localRotation = mat.rotation;
             cloudobj.transform.localScale = new Vector3(-1, 1, 1);
