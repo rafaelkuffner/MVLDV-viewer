@@ -39,18 +39,21 @@ public class PointCloudDepth : MonoBehaviour
     {
         _player.Play();
         _playing = true;
+        print("play!");
     }
 
     public void PauseCloudVideo()
     {
         _player.Pause();
         _playing = false;
+        print("pause!");
     }
 
 
    
     void OnNewFrame(VideoPlayer source, long frameIdx)
     {
+        
         if (!_playing) return;
 
        
