@@ -76,9 +76,10 @@ Shader "Custom/Depth Billboard"
 						pos.y =  pos.z*(verty-  211.5)/351.001462;
 						pos.w = 1;	
 
-						if(dValue == 0)		
-							c.a = 0;
+					
 					output.pos = UnityObjectToClipPos(pos); //pos;
+					if(dValue ==0)
+					output.pos.z = 500000;
 					output.color = c;
 					output.psize = _Size;
 					return output;
@@ -88,7 +89,7 @@ Shader "Custom/Depth Billboard"
 				// Fragment Shader -----------------------------------------------
 				float4 FS_Main(FS_INPUT input) : COLOR
 				{
-					
+					if(input.color.a == 0) discard;
 					return input.color;
 				}
 

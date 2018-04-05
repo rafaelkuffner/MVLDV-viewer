@@ -50,7 +50,118 @@ public class PointCloudDepth : MonoBehaviour
     }
 
 
-   
+    int createSubmesh(int h, int submeshHeight, int id)
+    {
+        List<Vector3> points = new List<Vector3>();
+        //  List<int> ind = new List<int>();
+        List<int> tri = new List<int>();
+        int n = 0;
+
+        for (int k = 0; k < submeshHeight; k++, h++)
+        {
+            for (int w = 0; w < _width; w++)
+            {
+                Vector3 p = new Vector3(w / (float)_width, h / (float)_height, 0);
+                points.Add(p);
+                // ind.Add(n);
+
+                // Skip the last row/col
+                if (w != (_width - 1) && k != (submeshHeight - 1))
+                {
+                    int topLeft = n;
+                    int topRight = topLeft + 1;
+                    int bottomLeft = topLeft + _width;
+                    int bottomRight = bottomLeft + 1;
+
+                    tri.Add(topLeft);
+                    tri.Add(topRight);
+                    tri.Add(bottomLeft);
+                    tri.Add(bottomLeft);
+                    tri.Add(topRight);
+                    tri.Add(bottomRight);
+                }
+                n++;
+            }
+        }
+
+        GameObject a = new GameObject("cloud" + id);
+        MeshFilter mf = a.AddComponent<MeshFilter>();
+        MeshRenderer mr = a.AddComponent<MeshRenderer>();
+        mr.material = _mat;
+        mr.material.SetTexture("_ColorTex", _player.targetTexture);
+        mf.mesh = new Mesh();
+        mf.mesh.vertices = points.ToArray();
+        //  mf.mesh.SetIndices(ind.ToArray(), MeshTopology.Triangles, 0);
+        mf.mesh.SetTriangles(tri.ToArray(), 0);
+        mf.mesh.bounds = new Bounds(new Vector3(0, 0, 4.5f), new Vector3(5, 5, 5));
+        a.transform.parent = this.gameObject.transform;
+        a.transform.localPosition = Vector3.zero;
+        a.transform.localRotation = Quaternion.identity;
+        a.transform.localScale = new Vector3(1, 1, 1);
+        n = 0;
+        _objs.Add(a);
+
+        return h;
+    }
+
+    void createStitchingMesh(int submeshHeight, int id)
+    {
+        List<Vector3> points = new List<Vector3>();
+        //  List<int> ind = new List<int>();
+        List<int> tri = new List<int>();
+        int n = 0;
+
+        for (int h = submeshHeight - 1; h < _height; h += submeshHeight)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                for (int w = 0; w < _width; w++)
+                {
+                    Vector3 p = new Vector3(w / (float)_width, (h + i) / (float)_height, 0);
+
+                    points.Add(p);
+                    // ind.Add(n);
+
+                    // Skip the last row/col
+                    if (w != (_width - 1) && i == 0)
+                    {
+                        int topLeft = n;
+                        int topRight = topLeft + 1;
+                        int bottomLeft = topLeft + _width;
+                        int bottomRight = bottomLeft + 1;
+
+                        tri.Add(topLeft);
+                        tri.Add(topRight);
+                        tri.Add(bottomLeft);
+                        tri.Add(bottomLeft);
+                        tri.Add(topRight);
+                        tri.Add(bottomRight);
+                    }
+                    n++;
+                }
+            }
+        }
+
+        GameObject a = new GameObject("cloud" + id);
+        MeshFilter mf = a.AddComponent<MeshFilter>();
+        MeshRenderer mr = a.AddComponent<MeshRenderer>();
+        mr.material = _mat;
+        mr.material.SetTexture("_ColorTex", _player.targetTexture);
+
+        mf.mesh = new Mesh();
+        mf.mesh.vertices = points.ToArray();
+        //  mf.mesh.SetIndices(ind.ToArray(), MeshTopology.Triangles, 0);
+        mf.mesh.SetTriangles(tri.ToArray(), 0);
+        mf.mesh.bounds = new Bounds(new Vector3(0, 0, 4.5f), new Vector3(5, 5, 5));
+        a.transform.parent = this.gameObject.transform;
+        a.transform.localPosition = Vector3.zero;
+        a.transform.localRotation = Quaternion.identity;
+        a.transform.localScale = new Vector3(1, 1, 1);
+        n = 0;
+        _objs.Add(a);
+    }
+
+
     void OnNewFrame(VideoPlayer source, long frameIdx)
     {
         
@@ -102,60 +213,15 @@ public class PointCloudDepth : MonoBehaviour
         }
         _objs = new List<GameObject>();
 
-        List<Vector3> points = new List<Vector3>();
-        List<int> ind = new List<int>();
-        int n = 0;
-        int i = 0;
-
-        for (float w = 0; w < _width; w++)
+        int w = 0;
+        int h = 0;
+        int submeshes;
+        for (submeshes = 0; submeshes < 4; submeshes++)
         {
-            for (float h = 0; h < _height; h++)
-            {
-                Vector3 p = new Vector3(w / _width, h / _height, 0);
-                points.Add(p);
-                ind.Add(n);
-                n++;
+            h = createSubmesh(h, _height / 4, submeshes);
 
-                if (n == 65000)
-                {
-                    GameObject a = new GameObject("cloud" + i);
-                    MeshFilter mf = a.AddComponent<MeshFilter>();
-                    MeshRenderer mr = a.AddComponent<MeshRenderer>();
-                    mr.material = _mat;
-                    mr.material.SetTexture("_ColorTex", play.targetTexture);
-                    mf.mesh = new Mesh();
-                    mf.mesh.vertices = points.ToArray();
-                    mf.mesh.SetIndices(ind.ToArray(), MeshTopology.Points, 0);
-                    mf.mesh.bounds = new Bounds(new Vector3(0, 0, 4.5f), new Vector3(5, 5, 5));
-                    a.transform.parent = cloudGameobj.transform;
-                    a.transform.localPosition = Vector3.zero;
-                    a.transform.localRotation = Quaternion.identity;
-                    a.transform.localScale = new Vector3(1, 1, 1);
-                    n = 0;
-                    i++;
-                    _objs.Add(a);
-                    points = new List<Vector3>();
-                    ind = new List<int>();
-                }
-            }
         }
-        GameObject afinal = new GameObject("cloud" + i);
-        MeshFilter mfinal = afinal.AddComponent<MeshFilter>();
-        MeshRenderer mrfinal = afinal.AddComponent<MeshRenderer>();
-        mrfinal.material = _mat;
-        mfinal.mesh = new Mesh();
-        mfinal.mesh.vertices = points.ToArray();
-        mfinal.mesh.SetIndices(ind.ToArray(), MeshTopology.Points, 0);
-        afinal.transform.parent = cloudGameobj.transform;
-        afinal.transform.localPosition = Vector3.zero;
-        afinal.transform.localRotation = Quaternion.identity;
-        afinal.transform.localScale = new Vector3(1, 1, 1);
-        n = 0;
-        i++;
-        _objs.Add(afinal);
-        points = new List<Vector3>();
-        ind = new List<int>();
-
+        createStitchingMesh(_height / 4, submeshes);
 
     }
 
@@ -170,7 +236,6 @@ public class PointCloudDepth : MonoBehaviour
         foreach (GameObject a in _objs)
             a.SetActive(true);
     }
-
 
     void Update()
     {

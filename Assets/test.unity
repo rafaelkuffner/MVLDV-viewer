@@ -294,7 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79029b34e6b01ef4aafd04c62e038ed4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  configFile: C:\Users\rafae\Desktop\Data TEST\output.ini
+  configFile: D:\Dados BlackBox\Dados Lopes G\Individual\Miyu\Video\output.ini
 --- !u!4 &1598447152
 Transform:
   m_ObjectHideFlags: 0
