@@ -2,26 +2,28 @@
 using UnityEngine;
 using UnityEngine.Video;
 using System.Collections.Generic;
+using System.Collections;
 
 public class PointCloudDepth : MonoBehaviour
 {
     public float brightness;
     uint _id;
-    Texture2D _colorTex;
     Texture2D _depthTex;
     List<GameObject> _objs;
     GameObject _cloudGameobj;
     Material _mat;
     RVLDecoder _decoder;
     VideoPlayer _player;
-    string _colorpath;
-    string _depthpath;
     bool _playing;
+
+    private bool _videoSeekActive;
+    private bool _videoSeekWasPlaying;
+    private double _seekTime;
+    private long _seekFrame;
 
     // Decompressor _colorDecoder;
     byte[] _depthBytes;
-    byte[] _colorBytes;
-    int _texScale;
+   
     int _width;
     int _height;
     bool _depthStreamDone = false;
@@ -29,14 +31,19 @@ public class PointCloudDepth : MonoBehaviour
     {
         _width = 512;
         _height = 424;
-        _texScale = 1;
         _objs = null;
         _mat = Resources.Load("Materials/cloudmatDepth") as Material;
-        brightness = 1;
+        brightness = 3;
     }
 
     public void PlayCloudVideo()
     {
+        if (!_player.isPrepared && !_decoder.prepared)
+        {
+            print("Video not yet prepared");
+            return;
+        }
+        print("Video prepared, lets play. can set time " + _player.canSetTime);
         _player.Play();
         _playing = true;
     }
@@ -47,11 +54,114 @@ public class PointCloudDepth : MonoBehaviour
         _playing = false;
     }
 
+    public void StopCloudVideo()
+    {
+        _player.Stop();
+        _player.Prepare();
+        _playing = false;
+        _decoder.ResetDecoder();
+        hide();
+    }
 
+    public void Back5Sec()
+    {
+        if (!_player.canSetTime) return;
+
+        _seekTime = _player.time - 5;
+        _seekTime = _seekTime < 0 ? 0 : _seekTime;
+        _seekFrame = (long)(_seekTime * 30);
+        _player.time = _seekTime;
+        _decoder.skipToFrame(_seekFrame);
+        //StartCoroutine(SeekTimeRoutine());
+    }
+
+    public void Skip5Sec()
+    {
+        if (!_player.canSetTime) return;
+
+        _seekTime = _player.time + 5;
+        _seekFrame = (long)(_seekTime * 30);
+
+        if (_seekTime > (_player.frameCount / _player.frameRate))
+            StopCloudVideo();
+        else
+        {
+            _player.time = _seekTime;
+            _decoder.skipToFrame(_seekFrame);
+        }
+            //StartCoroutine(SeekTimeRoutine());
+
+    }
+
+   
+    //private IEnumerator SeekTimeRoutine()
+    //{
+    //    _videoSeekActive = true;
+    //    _videoSeekWasPlaying = _playing;
+    //    hide();
+       
+    //    if (_player)
+    //    {
+    //        // stop the player
+    //        _player.Stop();
+        
+    //        yield return null;
+
+    //        _player.Prepare();
+
+    //        Debug.Log("Preparing the video...");
+
+    //        float waitTillTime = Time.time + 5f;  // wait 5 seconds max
+    //        while (!_player.isPrepared && (Time.time < waitTillTime))
+    //        {
+    //            yield return null;
+    //        }
+
+    //        string sMessage = _player.isPrepared ? "Video prepared" : "Video NOT prepared";
+    //        Debug.Log(sMessage);
+
+    //        // start playing (otherwise it starts from time/frame 0).
+    //        _player.Play();
+    //        _player.Pause();
+
+    //        yield return null;
+
+
+    //        _player.time = _seekTime;
+
+    //        //_playing = true;
+    //        //OnNewFrame(_player, _player.frame);
+    //        //_playing = false;
+
+
+    //        Debug.Log(string.Format("VideoPlayer time set to: {0:F3}", _seekTime));
+    //        _seekTime = -1.0;
+    //        yield return null;
+    //    }
+
+    //    _videoSeekActive = false;
+    //}
+
+    //void VideoSeekCompleted(VideoPlayer source)
+    //{
+    //    print("Seeked");
+    //    if (_videoSeekWasPlaying)
+    //    {
+    //        _decoder.skipToFrame(_seekFrame);
+    //        _player.Play();
+    //        _playing = true;
+    //    }
+    //}
+
+    public void SetSpeed(float speed)
+    {
+        _player.playbackSpeed = speed;
+        print("Set speed of cloud to " + speed);
+    }
    
     void OnNewFrame(VideoPlayer source, long frameIdx)
     {
-        if (!_playing) return;
+        if (!_playing || _videoSeekActive) return;
 
        
         _depthStreamDone = !_decoder.DecompressRVL(_depthBytes, _width * _height);
@@ -79,17 +189,25 @@ public class PointCloudDepth : MonoBehaviour
         _cloudGameobj = cloudGameobj;
 
         //Setup color
+       // VideoClip clip = Resources.Load<VideoClip>(colorVideo) as VideoClip;
         VideoPlayer play = cloudGameobj.AddComponent<VideoPlayer>();
         play.playOnAwake = false;
+        //play.clip = clip;
         play.url = colorVideo;
         play.targetTexture = new RenderTexture(_width, _height, 24, RenderTextureFormat.BGRA32);
         play.sendFrameReadyEvents = true;
         play.frameReady += this.OnNewFrame;
+        play.errorReceived += this.errorReceived;
+       // play.seekCompleted += this.VideoSeekCompleted;
         play.skipOnDrop = false;
         _player = play;
+        _player.Prepare();
+
         //setup depth
         _decoder = new RVLDecoder(depthVideo,_width,_height);
 
+       // StartCoroutine(_decoder.Prepare());
+        _decoder.Prepare();
         if (_objs != null)
         {
             foreach (GameObject g in _objs)
@@ -156,6 +274,7 @@ public class PointCloudDepth : MonoBehaviour
 
     }
 
+  
     public void hide()
     {
         foreach (GameObject a in _objs)
@@ -168,7 +287,12 @@ public class PointCloudDepth : MonoBehaviour
             a.SetActive(true);
     }
 
-
+    public void destroy()
+    {
+        _player.frameReady -= this.OnNewFrame;
+        foreach (GameObject a in _objs)
+            GameObject.Destroy(a);
+    }
     void Update()
     {
         if (_depthStreamDone)
@@ -179,4 +303,10 @@ public class PointCloudDepth : MonoBehaviour
             return;
         }
     }
+
+    void errorReceived(VideoPlayer v, string msg)
+    {
+        print("video player error " + msg);
+    }
+   
 }

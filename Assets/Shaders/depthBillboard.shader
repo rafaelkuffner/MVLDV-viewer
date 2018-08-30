@@ -87,6 +87,8 @@ Shader "Custom/Depth Billboard"
 						pos.y =  pos.z*(verty-  211.5)/351.001462;
 						pos.w = 1;	
 
+						if(pos.y > 2)
+							c.a = 0;
 						if(dValue == 0)		
 							c.a = 0;
 					output.pos =  pos;
@@ -120,7 +122,7 @@ Shader "Custom/Depth Billboard"
 					
 					float size = (p[0].pos.z*_Size)/351.00146192;
 					//float size = 0.014;
-					float halfS = 0.47f * size;
+					float halfS = 0.49f * size;
 
 					if(p[0].color.a != 0){
 							

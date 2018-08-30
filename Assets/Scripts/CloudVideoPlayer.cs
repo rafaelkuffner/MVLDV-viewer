@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 
-public class CloudVideoPlayer : MonoBehaviour {
+public class CloudVideoPlayer{
 
 
     private Dictionary<string, PointCloudDepth> _clouds;
@@ -20,26 +20,16 @@ public class CloudVideoPlayer : MonoBehaviour {
     private int _vidWidth;
     private int _vidHeight;
     private int _layerNum;
-    private bool _playing;
-    public GameObject _rightHand;
-    public GameObject _leftHand;
-    private SteamVR_TrackedObject _rightObj = null;
-    private SteamVR_TrackedObject _leftObj= null;
-    private SteamVR_Controller.Device _rightController;
-    private SteamVR_Controller.Device _leftController;
-    void Awake()
+   
+    public CloudVideoPlayer(string path)
     {
-        Debug.Log("Hello Tracker");
+        configFile = path;
+        Debug.Log("VideoObject loading from " + configFile);
         _clouds = new Dictionary<string, PointCloudDepth>();
-        _rightObj = _rightHand.GetComponent<SteamVR_TrackedObject>();
-        _leftObj = _leftHand.GetComponent<SteamVR_TrackedObject>();
-
         loadConfig();
     }
 
 
-
-   
 
     private void loadConfig()
     { 
@@ -70,58 +60,75 @@ public class CloudVideoPlayer : MonoBehaviour {
             cloudobj.AddComponent<PointCloudDepth>();
             PointCloudDepth cloud = cloudobj.GetComponent<PointCloudDepth>();
 
-
+            //play from url
             string colorvideo = _videosDir + "\\" + s + _colorStreamName;
+            //char[] sep = { '\\' };
+            //string[] folderName = _videosDir.Split(sep);
+            //string colorvideo = "CloudData\\" + folderName[folderName.Length - 1] + "\\" + s + _colorStreamName;
             string depthvideo = _videosDir + "\\" + s + _depthStreamName;
             //string normalvideo = _videosDir + "\\" + s + _normalStreamName;
 
             cloud.initStructs((uint)i,colorvideo, depthvideo,cloudobj);
 
             _clouds.Add(s, cloud);            
-           
-            
+
         }
 
     }
 
-
-
-    public void hideAllClouds()
-    {
-        foreach (PointCloudDepth s in _clouds.Values)
+    public void Skip5Sec(){
+        foreach (PointCloudDepth d in _clouds.Values)
         {
-            s.hide();
+            d.Skip5Sec();
         }
-
     }
 
-   
-    private void Update()
+    public void Back5Sec()
     {
-        if (_rightObj.index == SteamVR_TrackedObject.EIndex.None || _leftObj.index == SteamVR_TrackedObject.EIndex.None) return;
-        _rightController = SteamVR_Controller.Input((int)_rightObj.index);
-        _leftController = SteamVR_Controller.Input((int)_leftObj.index);
-        if (_rightController.GetPressUp(SteamVR_Controller.ButtonMask.Trigger))
+        foreach (PointCloudDepth d in _clouds.Values)
         {
-            _playing = !_playing;
-            foreach(KeyValuePair<string,PointCloudDepth> d in _clouds)
-            {
-                if (_playing)
-                    d.Value.PlayCloudVideo();
-                else
-                    d.Value.PauseCloudVideo();
-            }
+            d.Back5Sec();
+        }
+    }
+    
+    public void Play()
+    {
+        foreach (PointCloudDepth d in _clouds.Values)
+        {
+            d.PlayCloudVideo();
         }
     }
 
-    //public void processAvatarMessage(AvatarMessage av)
-    //{
-    //    foreach (string s in av.calibrations)
-    //    {
-    //        string[] chunks = s.Split(';');
+    public void Pause()
+    {
+        foreach (PointCloudDepth d in _clouds.Values)
+        {
+            d.PauseCloudVideo();
+        }
+    }
 
+    public void Stop()
+    {
+        foreach (PointCloudDepth d in _clouds.Values)
+        {
+            d.StopCloudVideo();
+        }
+    }
+    public void Close()
+    {
+        foreach (PointCloudDepth pcd in _clouds.Values)
+        {
+            pcd.destroy();
+            GameObject.Destroy(pcd.gameObject);
+        }
+    }
 
-    //    }
-    //    Camera.main.GetComponent<MouseOrbitImproved>().target = _cloudGameObjects.First().Value.transform;
-    //}
+    public void setSpeed(float speed)
+    {
+        foreach (PointCloudDepth d in _clouds.Values)
+        {
+            d.SetSpeed(speed);
+        }
+    }
+
 }

@@ -53,8 +53,11 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\CloudVideoPlayer.cs" />
      <Compile Include="Assets\Scripts\ConfigProperties.cs" />
+     <Compile Include="Assets\Scripts\InputManager.cs" />
      <Compile Include="Assets\Scripts\PointCloudDepth.cs" />
+     <Compile Include="Assets\Scripts\PopulateCloudMenu.cs" />
      <Compile Include="Assets\Scripts\RVLDecoder.cs" />
+     <Compile Include="Assets\Scripts\VRUIItem.cs" />
      <Compile Include="Assets\SteamVR\Extras\SteamVR_GazeTracker.cs" />
      <Compile Include="Assets\SteamVR\Extras\SteamVR_LaserPointer.cs" />
      <Compile Include="Assets\SteamVR\Extras\SteamVR_Teleporter.cs" />
